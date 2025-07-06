@@ -1,0 +1,42 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "${HOST_REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis_data:/data/redis
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "${HOST_DB_PORT}:${DB_PORT}"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - postgres_data:/data/postgres
+    restart: unless-stopped
+
+  python_app:
+    build: .
+    container_name: python_app
+    depends_on:
+      - redis
+      - postgres
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
